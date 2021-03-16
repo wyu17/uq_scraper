@@ -4,7 +4,7 @@
 
 A collection of python scripts I wrote to scrape the UQ website for information about UQ programs, plans, and courses; read the function documentation in main.py for some more detail as to the data that can be scraped. 
  
-Intended for use generating data for the the attached schema that is currently in use for UQDegreePlanner, but is possibly reusable in other contexts with a few modifications.
+Intended for use generating data for the the attached schema that is currently in use for UQ DegreePlanner, but is possibly reusable in other contexts with a few modifications.
 
 ## Dependencies
 
@@ -15,7 +15,7 @@ https://www.mysql.com/downloads/
 
 * Requests library:
 
-pip3 install requests
+`pip3 install requests`
 
 * mySQL Connector:
 
@@ -23,11 +23,11 @@ Only tested with Ubuntu Linux 20.10 (x86, 64-bit), DEB  but is likely to work on
 
 * BeautifulSoup:
 
-pip3 install beautifulsoup4
+`pip3 install beautifulsoup4`
 
 * Selenium:
 
-pip3 install selenium
+`pip3 install selenium`
 
 You will also need a webdriver: I used the firefox for linux64 release found here https://github.com/mozilla/geckodriver/releases/tag/v0.29.0
 
