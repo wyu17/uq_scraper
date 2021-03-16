@@ -8,24 +8,24 @@ Intended for use generating data for the the attached schema that is currently i
 
 ## Dependencies
 
-A mysql database:
+* A mysql database
 
 The program currently scrapes data directly into a mySQL database; this will require a mySQL database on the local machine. See:
 https://www.mysql.com/downloads/
 
-Requests library:
+* Requests library:
 
 pip3 install requests
 
-mySQL Connector:
+* mySQL Connector:
 
 Only tested with Ubuntu Linux 20.10 (x86, 64-bit), DEB  but is likely to work on other distributions. See main.py for an example of the connector object that is required.
 
-BeautifulSoup:
+* BeautifulSoup:
 
 pip3 install beautifulsoup4
 
-Selenium:
+* Selenium:
 
 pip3 install selenium
 
