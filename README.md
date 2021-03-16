@@ -4,7 +4,7 @@
 
 A collection of python scripts I wrote to scrape the UQ website for information about UQ programs, plans, and courses; read the function documentation in main.py for some more detail as to the data that can be scraped. 
  
-Intended for use generating data for the the attached schema that is currently in use for UQ DegreePlanner, but is possibly reusable in other contexts with a few modifications.
+Intended for use generating data for the the attached schema that is currently in use for UQ Degree Planner, but is possibly reusable in other contexts with a few modifications.
 
 ## Dependencies
 
