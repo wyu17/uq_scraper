@@ -1,51 +1,7 @@
 """
 Code to scrape University of Queensland course (subject) information
 """
-from .helpers import get_soup
-from .offering import Offering
-from .semester import Semester, get_all_semesters, get_semester_by_name
-from typing import List
-
-class CourseSemestersOffered:
-  """An object describing which semesters a course is offered in
-  """
-  one: bool = False
-  two: bool = False
-  summer: bool = False
-
-  # init with appropriate values
-  def __init__(self, one: bool, two: bool, summer: bool):
-    self.one = one
-    self.two = two
-    self.summer = summer
-
-  # whether course is offered at all
-  def offered(self):
-    return self.one or self.two or self.summer
-
-  # string representation
-  def __str__(self):
-    # for brevity
-    one = self.one
-    two = self.two
-    summer = self.summer
-
-    if one and two and summer:
-      return "This course is offered in semester one, semester two, and the summer semester."
-    elif one and two and not summer:
-      return "This course is offered in semester one and semester two."
-    elif one and not two and not summer:
-      return "This course is offered in semester one."
-    elif not one and two and not summer:
-      return "This course is offered in semester two."
-    elif not one and not two and summer:
-      return "This course is offered in the summer semester."
-    elif one and not two and summer:
-      return "This course is offered in semester one and the summer semester."
-    elif not one and two and summer:
-      return "This course is offered in semester two and the summer semester."
-    elif not one and not two and not summer:
-      return "This course is not offered in any semester."
+from helpers import get_soup
 
 class Course:
   """
@@ -62,27 +18,14 @@ class Course:
   description: str = ""
   # unit value of the course
   units: int = 0
-  # which semesters course is offered in
-  semesters_offered: CourseSemestersOffered = CourseSemestersOffered(False, False, False)
-  # which course codes are prerequisites for this course
-  prerequisites: List[str] = []
-  # which course codes are incompatible with this course
-  incompatibilities: List[str] = []
-  # which programs this course is restricted to
-  restricted: List[str] = []
-  # offerings of this course
-  offerings: List[Offering] = []
-
-  # whether the course is valid
-  def valid(self):
-    """Whether the course object represents a valid course
-    
-    Returns:
-      bool -- whether the course is valid
-    """
-
-    self.valid_internal = not (self.code == "" or self.title == "" or self.units < 1)
-    return self.valid_internal
+  # which semesters course is offered in: 0 for not offered, 1 for offered
+  sem1: int = 0
+  sem2: int = 0
+  summer: int = 0
+  # Course prerequisites
+  prereq: str = ""
+  # Course incompatible
+  incomp: str = ""
 
   # init based on course code with rest populated by scraping
   def __init__(self, code: str):
@@ -91,7 +34,7 @@ class Course:
     else:
       self.code = code
       self.update()
-
+ 
   # update self based on information scraped from UQ
   def update(self):
     """Updates self based on information scraped from UQ
@@ -108,84 +51,25 @@ class Course:
     if '\n' in description:
       description = description.split('\n')[0]
     self.description = description
-
     self.title = soup.find(id="course-title").get_text()[:-11].replace("'","''")
     self.units = int(soup.find(id="course-units").get_text())
 
-    try:
-      raw_prerequisites = soup.find(id="course-prerequisites").get_text()
-      print("Raw prerequisites for {} are {}".format(self.code, raw_prerequisites))
-      # TODO parse this
-    except AttributeError:
-      raw_prerequisites = None
-
-    try:
-      self.incompatibilities = soup.find(id="course-incompatible").get_text()\
-            .replace(' and ', ', ') \
-            .replace(' or ', ', ') \
-            .replace(' & ', ', ') \
-            .replace('; ', ', ') \
-            .split(', ')
-    except AttributeError:
-      self.incompatibilities = []
-
-    try:
-      restricted = soup.find(id="course-restricted").get_text()\
-            .replace(' and ', ', ') \
-            .replace(' or ', ', ') \
-            .replace(' & ', ', ') \
-            .replace('; ', ', ') \
-            .split(', ')
-      self.restricted = restricted
-    except AttributeError:
-      self.restricted = []
-
     semester_offerings = str(soup.find_all(id="course-current-offerings"))
-    sem_one = False
-    sem_two = False
-    sem_sum = False
     if "Semester 1, " in semester_offerings:
-      sem_one = True
+      self.sem1 = 1
     if "Semester 2, " in semester_offerings:
-      sem_two = True
+      self.sem2 = 1
     if "Summer Semester, " in semester_offerings:
-      sem_sum = True
-    self.semesters_offered = CourseSemestersOffered(sem_one, sem_two, sem_sum)
+      self.summer = 1
 
-    current_offerings_table = soup.find(id='course-current-offerings')
-    current_offerings = []
-    current_offerings_rows = current_offerings_table.find_all('tr')
-    for row in current_offerings_rows[1:]:
-      cols = row.find_all('td')
-      semester_name = cols[0].text.strip()
-      if 'unavailable' in cols[3].get_text():
-        continue
-      profile_id = int(cols[3].find('a')['href'].split('profileId=')[1])
-      current_offerings.append({
-        "semester_name": semester_name,
-        "profile_id": profile_id,
-        "course_code": self.code
-      })
+    prereq = soup.find(id = "course-prerequisite")
+    if prereq is not None:
+      if (type(prereq) != type("")):
+        prereq = prereq.get_text()
+      self.prereq = prereq
 
-    archived_offerings_table = soup.find(id='course-archived-offerings')
-    archived_offerings = []
-    archived_offerings_rows = archived_offerings_table.find_all('tr')
-    for row in archived_offerings_rows[1:]:
-      cols = row.find_all('td')
-      semester_name = cols[0].text.strip()
-      if int(semester_name[-4:]) < 2012:
-        continue
-      if 'unavailable' in cols[3].get_text():
-        continue
-      profile_id = int(cols[3].find('a')['href'].split('profileId=')[1])
-      current_offerings.append({
-        "semester_name": semester_name,
-        "profile_id": profile_id,
-        "course_code": self.code
-      })
-
-    for offering in archived_offerings + current_offerings:
-      semester_id = get_semester_by_name(offering["semester_name"]).id
-      off = Offering(offering["course_code"], semester_id, offering["profile_id"])
-      self.offerings.append(off)
+    incomp = soup.find(id = "course-incompatible")
+    if incomp is not None:
+      incomp = incomp.get_text()
+      self.incomp = incomp
     
